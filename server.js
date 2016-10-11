@@ -18,22 +18,28 @@ var connections = [];
 
 
 //////////////////timer observable////////////////////
-var timer = Rx.Observable.create(function(observer) {
+// var timer = Rx.Observable.create(function(observer) {
     
-        var time = 1000;
-        function fun() {
-            time--;
-            console.log(time)
-            observer.onNext({'time': time}); 
+//         var time = 1000;
+//         function countdown() {
+//             time--;
+//             // console.log(time)
+//             observer.onNext({'time': time}); 
             
-        }
-        setInterval(fun, 1000)
+//         }
+//         var timerInterval = setInterval(countdown, 1000)
 
-});    
-timer.subscribe(function(obj) {
-    // console.log(obj)
-    io.sockets.emit("new time", obj)
-})
+//         return function() {
+//             clearTimeout(timerInterval);
+
+//         }
+
+// });    
+
+// timer.subscribe(function(time) {
+//     // console.log(obj)
+//     io.sockets.emit("new time", time)
+// })
 
 //////////////////connection observable////////////////////
 // Main function for user initial connection using sockets
@@ -84,15 +90,16 @@ var observerConnect = sourceConnect
 var observerDisconnect = sourceDisconnect
 .subscribe(function(obj) { 
     //console.log(usersMap);
-    var socketId = obj.socketId;
+    // var socketId = obj.socketId;
     //console.log(socketId);
-    var user = usersMap.get(socketId);
-    console.log('Client disconnected ', user.socketId, user.nickname);
-    usersMap = usersMap.delete(obj.socketId);
-    io.emit('all users', usersMap.toArray());
+    // var user = usersMap.get(socketId);
+    // console.log('Client disconnected ', user.socketId, user.nickname);
+    // usersMap = usersMap.delete(obj.socketId);
+    // io.emit('all users', usersMap.toArray());
 });
 
 app.post('/message', function(req, res) {
+    console.log("-------------");
     console.log(req.body);
     io.emit('message', req.body);
 });

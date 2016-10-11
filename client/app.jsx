@@ -98,40 +98,77 @@ var ChatPanel = React.createClass({
     }
 });
 
-var Counter = React.createClass({
-    getInitialState() {
-        return {
-            counter: ""
+class Counter extends React.Component {
+    constructor() {
+        super()
+        
+        this.state = {
+            counter: "",
+            chatRooms: ['ReactJS', 'RxJS', 'SocketIO', 'NodeJS']
         }
-    },
 
-    componentDidMount() {
-        var socket = io();
+        this.time = new Rx.Subject()
+    }
+
+    timer() {
+        var time = 1000;
         var self = this;
 
-        var timeStream = Rx.Observable.create(observer => {
-            socket.on('new time', data => { observer.onNext(data); });
-        });  
+        function countdown() {
+            time--;
+            self.time.onNext({'time': time});
+        }
         
-        timeStream.subscribe(data => {            
+        setInterval(countdown, 1000)
+            
+    }
+
+    componentDidMount() {
+        this.timer()
+        this.time.subscribe(data => {            
             console.log(data)
-            self.setState({
+            this.setState({
                 counter: data.time
-        })
+            })
             
         });
 
-    },
+    }
+
+    onMouseOver(e) {
+        var activeTab = document.getElementById('tab');
+        console.log(activeTab)
+
+        var mouseStream = Rx.Observable.fromEvent(activeTab, 'click').map(e => console.log(e));        
+
+    }
+
     render() {
         return (
+
             <div>
                 <div className="row">
-                <h2>Observables, Observables, Observables: {this.state.counter}</h2>                
+                <h2>Observables, Observables, Observables: {this.state.counter}</h2>
+                  <div className="row">
+                    <div className="col s12">
+                    <ul className="tabs">
+                        {this.state.chatRooms.map( (room, i) => {
+                            return (
+                                <div key={i} className="col s3">
+                                    <button onMouseEnter={this.onMouseOver} id="tab" className="btn btn-large waves-effect waves-light grey darken-1"> {room}</button>
+
+                                </div>
+                            ) 
+                        })}
+                    </ul>
+                    </div>
+                    </div>
+          
                 </div>
             </div>
         );
     }
-})
+}
 
 var Main = React.createClass({
     getInitialState() {
@@ -146,10 +183,6 @@ var Main = React.createClass({
         var users = this.state.users;
         var messages = this.state.messages;
         var self = this;
-        
-        //Happens first, same time with io.on('connection') on server, but useless 
-        //because it has not socketId.  We do nothing with this event
-        //socket.on('connect', () => {});                
         
         var socketIdStream = Rx.Observable.create(observer => {
             socket.on('my socketId', data => { observer.onNext(data); });

@@ -46,6 +46,14 @@
 
 	"use strict";
 
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
 	var AppBar = React.createClass({
 	    displayName: "AppBar",
 	    render: function render() {
@@ -249,47 +257,107 @@
 	    }
 	});
 
-	var Counter = React.createClass({
-	    displayName: "Counter",
-	    getInitialState: function getInitialState() {
-	        return {
-	            counter: ""
+	var Counter = function (_React$Component) {
+	    _inherits(Counter, _React$Component);
+
+	    function Counter() {
+	        _classCallCheck(this, Counter);
+
+	        var _this2 = _possibleConstructorReturn(this, (Counter.__proto__ || Object.getPrototypeOf(Counter)).call(this));
+
+	        _this2.state = {
+	            counter: "",
+	            chatRooms: ['ReactJS', 'RxJS', 'SocketIO', 'NodeJS']
 	        };
-	    },
-	    componentDidMount: function componentDidMount() {
-	        var socket = io();
-	        var self = this;
 
-	        var timeStream = Rx.Observable.create(function (observer) {
-	            socket.on('new time', function (data) {
-	                observer.onNext(data);
-	            });
-	        });
-
-	        timeStream.subscribe(function (data) {
-	            console.log(data);
-	            self.setState({
-	                counter: data.time
-	            });
-	        });
-	    },
-	    render: function render() {
-	        return React.createElement(
-	            "div",
-	            null,
-	            React.createElement(
-	                "div",
-	                { className: "row" },
-	                React.createElement(
-	                    "h2",
-	                    null,
-	                    "Observables, Observables, Observables: ",
-	                    this.state.counter
-	                )
-	            )
-	        );
+	        _this2.time = new Rx.Subject();
+	        return _this2;
 	    }
-	});
+
+	    _createClass(Counter, [{
+	        key: "timer",
+	        value: function timer() {
+	            var time = 1000;
+	            var self = this;
+
+	            function countdown() {
+	                time--;
+	                self.time.onNext({ 'time': time });
+	            }
+
+	            setInterval(countdown, 1000);
+	        }
+	    }, {
+	        key: "componentDidMount",
+	        value: function componentDidMount() {
+	            var _this3 = this;
+
+	            this.timer();
+	            this.time.subscribe(function (data) {
+	                console.log(data);
+	                _this3.setState({
+	                    counter: data.time
+	                });
+	            });
+	        }
+	    }, {
+	        key: "onMouseOver",
+	        value: function onMouseOver(e) {
+	            var activeTab = document.getElementById('tab');
+	            console.log(activeTab);
+
+	            var mouseStream = Rx.Observable.fromEvent(activeTab, 'click').map(function (e) {
+	                return console.log(e);
+	            });
+	        }
+	    }, {
+	        key: "render",
+	        value: function render() {
+	            var _this4 = this;
+
+	            return React.createElement(
+	                "div",
+	                null,
+	                React.createElement(
+	                    "div",
+	                    { className: "row" },
+	                    React.createElement(
+	                        "h2",
+	                        null,
+	                        "Observables, Observables, Observables: ",
+	                        this.state.counter
+	                    ),
+	                    React.createElement(
+	                        "div",
+	                        { className: "row" },
+	                        React.createElement(
+	                            "div",
+	                            { className: "col s12" },
+	                            React.createElement(
+	                                "ul",
+	                                { className: "tabs" },
+	                                this.state.chatRooms.map(function (room, i) {
+	                                    return React.createElement(
+	                                        "div",
+	                                        { key: i, className: "col s3" },
+	                                        React.createElement(
+	                                            "button",
+	                                            { onMouseEnter: _this4.onMouseOver, id: "tab", className: "btn btn-large waves-effect waves-light grey darken-1" },
+	                                            " ",
+	                                            room
+	                                        )
+	                                    );
+	                                })
+	                            )
+	                        )
+	                    )
+	                )
+	            );
+	        }
+	    }]);
+
+	    return Counter;
+	}(React.Component);
 
 	var Main = React.createClass({
 	    displayName: "Main",
@@ -305,10 +373,6 @@
 	        var users = this.state.users;
 	        var messages = this.state.messages;
 	        var self = this;
-
-	        //Happens first, same time with io.on('connection') on server, but useless 
-	        //because it has not socketId.  We do nothing with this event
-	        //socket.on('connect', () => {});                
 
 	        var socketIdStream = Rx.Observable.create(function (observer) {
 	            socket.on('my socketId', function (data) {
